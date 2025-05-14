@@ -3,22 +3,23 @@ import './App.css'
 import { generatePoints } from './utils';
 import Canvas from './components/Canvas';
 
-const WIDTH = 800;
-const HEIGHT = 600;
+const WIDTH = window.innerWidth;
+const HEIGHT = window.innerHeight;
+const AMOUNT = 500;
 
 function App() {
-  const [points, setPoints] = useState(() => generatePoints(30, WIDTH, HEIGHT));
+  const [points, setPoints] = useState(() => generatePoints(AMOUNT, WIDTH, HEIGHT));
 
   return (
     <>
-      <section className="flex flex-col items-center gap-10">
-        <h1 className="font-mono font-semibold">Voronoi Noise Map Generation</h1>
-        
-        <button onClick={() => setPoints(generatePoints(30, WIDTH, HEIGHT))}>
-          Regenerate Voronoi
-        </button>
+      <section>
+        <h1 className="fixed text-5xl font-mono font-semibold p-2 bg-black/50">Voronoi Noise Map Generation</h1>
 
         <Canvas points={points} width={WIDTH} height={HEIGHT} />
+
+        <button onClick={() => setPoints(generatePoints(AMOUNT, WIDTH, HEIGHT))} className="fixed bottom-5 left-[50%] translate-x-[-50%] bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 cursor-pointer">
+          Regenerate Voronoi
+        </button>
       </section>
     </>
   )
