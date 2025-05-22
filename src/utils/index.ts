@@ -1,5 +1,3 @@
-import { createNoise2D } from "simplex-noise";
-
 export function generatePoints(count: number, width: number, height: number) {
   return Array.from({ length: count }, () => {
     const x = Math.random() * width;

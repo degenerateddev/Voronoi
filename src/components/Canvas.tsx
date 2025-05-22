@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 type Point = {
     x: number;
     y: number;
-    terrain: "plains" | "forest" | "mountains" | "ocean";
+    terrain: "plains" | "forest" | "mountains" | "ocean" | "city";
 }
 
 const terrainColors: Record<Point["terrain"], string> = {
@@ -13,6 +13,7 @@ const terrainColors: Record<Point["terrain"], string> = {
     ocean: "#4F42B5",
     forest: "#228B22",
     plains: "#90EE90",
+    city: "#FF6347",
 }
 
 interface Props {
