@@ -13,7 +13,32 @@ function App() {
   return (
     <>
       <section>
-        <h1 className="fixed text-5xl font-mono font-semibold p-2 bg-black/50">Voronoi Noise Map Generation</h1>
+        <div className="flex flex-col gap-5 bg-black/50 p-2">
+          <h1 className="fixed text-5xl font-mono font-semibold">Voronoi Noise Map Generation</h1>
+          
+          <br />
+
+          <div className="flex items-center gap-3">
+            <input type="checkbox" />
+            Show Points
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input type="checkbox" />
+            Show Seed Points
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input type="checkbox" />
+            Show Voronoi Diagram
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input type="checkbox" />
+            Show Perlin / Simplex Noise Pattern
+          </div>
+
+        </div>
 
         <Canvas points={points} width={WIDTH} height={HEIGHT} />
 
