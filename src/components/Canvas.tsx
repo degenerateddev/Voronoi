@@ -52,7 +52,7 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
         { octaveCount: 4, amplitude: 0.5, persistence: 0.5 }
     );
 
-    let basePoints = seeds.map(c => [c.x, c.y]);
+    let basePoints: [number, number][] = seeds.map(c => [c.x, c.y]);
     let delaunaySeeds = Delaunay.from(basePoints);
     let voronoiSeeds = delaunaySeeds.voronoi([0, 0, width, height]);
 
@@ -66,7 +66,7 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
     }
 
     // Use centroids as new points for Voronoi
-    basePoints = centroids.map(c => [c.x, c.y]);
+    basePoints = centroids.map(c => [c.x, c.y]) as [number, number][];
     let delaunayCentroids = Delaunay.from(basePoints);
     let voronoiCentroids = delaunayCentroids.voronoi([0, 0, width, height]);
 
@@ -247,7 +247,7 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
             const showSeeds = vision.showSeedPoints;
 
             if (showCentroids && showSeeds) {
-                const delaunaySeeds = Delaunay.from(seeds.map(s => [s.x, s.y]));
+                const delaunaySeeds = Delaunay.from(seeds.map(s => [s.x, s.y]) as [number, number][]);
                 const delaunaySeedsGroup = svg.append("g");
                 for (let triangle of delaunaySeeds.trianglePolygons()) {
                     delaunaySeedsGroup.append("path")
@@ -256,7 +256,7 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
                         .attr("stroke", "orange")
                         .attr("stroke-width", 1);
                 }
-                const delaunayCentroids = Delaunay.from(centroids.map(c => [c.x, c.y]));
+                const delaunayCentroids = Delaunay.from(centroids.map(c => [c.x, c.y]) as [number, number][]);
                 const delaunayCentroidsGroup = svg.append("g");
                 for (let triangle of delaunayCentroids.trianglePolygons()) {
                     delaunayCentroidsGroup.append("path")
@@ -268,8 +268,8 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
             } else {
                 const showingCentroids = showCentroids && !showSeeds;
                 const delaunay = showingCentroids
-                    ? Delaunay.from(centroids.map(c => [c.x, c.y]))
-                    : Delaunay.from(seeds.map(s => [s.x, s.y]));
+                    ? Delaunay.from(centroids.map(c => [c.x, c.y]) as [number, number][])
+                    : Delaunay.from(seeds.map(s => [s.x, s.y]) as [number, number][]);
 
                 const delaunayGroup = svg.append("g");
                 for (let triangle of delaunay.trianglePolygons()) {
