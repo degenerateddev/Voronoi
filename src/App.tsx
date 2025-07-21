@@ -6,6 +6,7 @@ import Canvas from './components/Canvas';
 const WIDTH = window.innerWidth;
 const HEIGHT = window.innerHeight;
 const AMOUNT = 500;
+const LIMIT = 20000;
 const POISSON_RADIUS = 20;
 const LLOYDS_ITER = 2;
 
@@ -201,13 +202,13 @@ function App() {
                         value={amount}
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 0;
-                          setAmount(Math.max(1, Math.min(5000, value)));
+                          setAmount(Math.max(1, Math.min(LIMIT, value)));
                         }}
                         min="1"
-                        max="5000"
+                        max={LIMIT}
                       />
                       <button
-                        onClick={() => setAmount(prev => Math.min(5000, prev + 50))}
+                        onClick={() => setAmount(prev => Math.min(LIMIT, prev + 50))}
                         className="cursor-pointer bg-white/10 hover:bg-white/20 text-white w-8 h-8 rounded-md flex items-center justify-center transition-all duration-200 font-mono text-lg font-bold"
                       >
                         +
