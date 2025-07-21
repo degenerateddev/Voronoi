@@ -201,7 +201,7 @@ function App() {
                         value={amount}
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 0;
-                          setAmount(Math.max(1, Math.min(2000, value)));
+                          setAmount(Math.max(1, Math.min(5000, value)));
                         }}
                         min="1"
                         max="5000"
