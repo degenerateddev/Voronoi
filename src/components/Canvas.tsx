@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import { Delaunay } from "d3";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import perlin from "perlin-noise";
 
 // center point finden und radidus berechnen
@@ -43,14 +43,16 @@ interface Props {
 export default function Canvas({ seeds, width, height, vision }: Props) {
     const ref = useRef<SVGSVGElement | null>(null);
 
-    const perlinWidth = Math.ceil(width / 4);
-    const perlinHeight = Math.ceil(height / 4);
-    const elevation = perlin.generatePerlinNoise(
-        // perlinWidth * perlinHeight,
-        perlinWidth,
-        perlinHeight, 
-        { octaveCount: 4, amplitude: 0.5, persistence: 0.5 }
-    );
+    const { elevation, perlinWidth } = useMemo(() => {
+        const perlinWidth = Math.ceil(width / 4);
+        const perlinHeight = Math.ceil(height / 4);
+        const elevation = perlin.generatePerlinNoise(
+            perlinWidth,
+            perlinHeight, 
+            { octaveCount: 4, amplitude: 0.5, persistence: 0.5 }
+        );
+        return { elevation, perlinWidth };
+    }, [width, height]);
 
     let basePoints: [number, number][] = seeds.map(c => [c.x, c.y]);
     let delaunaySeeds = Delaunay.from(basePoints);
