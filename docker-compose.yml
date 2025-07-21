@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  voronoi-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3020:3020"
+    container_name: voronoi-container
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    # for dev hot-reload
+    # volumes:
+    #   - .:/app
+    #   - /app/node_modules
