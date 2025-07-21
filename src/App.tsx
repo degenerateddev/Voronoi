@@ -12,6 +12,8 @@ const LLOYDS_ITER = 2;
 type SeedMode = "random" | "poisson" | "lloyds";
 
 function App() {
+  const [amount, setAmount] = useState(AMOUNT);
+
   const [seedMode, setSeedMode] = useState<SeedMode>("random");
   const [seeds, setSeedPoints] = useState(() => generateRandomPoints(AMOUNT, WIDTH, HEIGHT));
   
@@ -34,11 +36,11 @@ function App() {
   function regenerateSeeds(mode: SeedMode = seedMode) {
     let newSeeds: { x: number, y: number }[] = [];
     if (mode === "random") {
-      newSeeds = generateRandomPoints(AMOUNT, WIDTH, HEIGHT);
+      newSeeds = generateRandomPoints(amount, WIDTH, HEIGHT);
     } else if (mode === "poisson") {
-      newSeeds = generatePoissonDiscPoints(AMOUNT, WIDTH, HEIGHT, POISSON_RADIUS);
+      newSeeds = generatePoissonDiscPoints(amount, WIDTH, HEIGHT, POISSON_RADIUS);
     } else if (mode === "lloyds") {
-      const base = generateRandomPoints(AMOUNT, WIDTH, HEIGHT);
+      const base = generateRandomPoints(amount, WIDTH, HEIGHT);
       newSeeds = generateLloydsRelaxation(base, LLOYDS_ITER);
     }
     setSeedPoints(newSeeds);
@@ -48,6 +50,11 @@ function App() {
     regenerateSeeds(seedMode);
     // eslint-disable-next-line
   }, [seedMode]);
+
+  useEffect(() => {
+    regenerateSeeds();
+    // eslint-disable-next-line
+  }, [amount]);
 
   return (
     <>
@@ -151,7 +158,9 @@ function App() {
                       checked={showVoronoiBefore}
                       onChange={() => {
                         setShowVoronoiBefore((prev) => {
-                          if (!prev) setShowVoronoiAfter(false);
+                          if (!prev) 
+                          setShowVoronoiAfter(false);
+                          setShowVoronoiBefore(true);
                           return !prev;
                         });
                       }}
@@ -165,12 +174,45 @@ function App() {
                       checked={showVoronoiAfter}
                       onChange={() => {
                         setShowVoronoiAfter((prev) => {
-                          if (!prev) setShowVoronoiBefore(false);
+                          if (!prev)
+                          setShowVoronoiBefore(false);
+                          setShowVoronoiAfter(true);
                           return !prev;
                         });
                       }}
                     />
                     <span className="text-sm">Show Voronoi Diagram After Centroid Calculation</span>
+                  </div>
+
+                  <hr className="border-white/30" />
+
+                  <div className="space-y-2">
+                    <span className="text-sm">Set seed amount:</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setAmount(prev => Math.max(1, prev - 50))}
+                        className="cursor-pointer bg-white/10 hover:bg-white/20 text-white w-8 h-8 rounded-md flex items-center justify-center transition-all duration-200 font-mono text-lg font-bold"
+                      >
+                        -
+                      </button>
+                      <input
+                        className="bg-white/10 border border-white/20 outline-none text-white text-base font-mono w-20 h-8 text-center rounded-md focus:border-white/50 focus:bg-white/15 transition-all duration-200"
+                        type="number"
+                        value={amount}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          setAmount(Math.max(1, Math.min(2000, value)));
+                        }}
+                        min="1"
+                        max="2000"
+                      />
+                      <button
+                        onClick={() => setAmount(prev => Math.min(2000, prev + 50))}
+                        className="cursor-pointer bg-white/10 hover:bg-white/20 text-white w-8 h-8 rounded-md flex items-center justify-center transition-all duration-200 font-mono text-lg font-bold"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -250,7 +292,7 @@ function App() {
           }
         />
 
-        <button onClick={() => setSeedPoints(generateRandomPoints(AMOUNT, WIDTH, HEIGHT))} className="fixed bottom-5 left-[50%] translate-x-[-50%] bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 cursor-pointer">
+        <button onClick={() => setSeedPoints(generateRandomPoints(amount, WIDTH, HEIGHT))} className="fixed bottom-5 left-[50%] translate-x-[-50%] bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 cursor-pointer">
           Regenerate Voronoi
         </button>
       </section>
