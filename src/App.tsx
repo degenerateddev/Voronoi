@@ -28,7 +28,7 @@ function App() {
 
   const [showPerlinElevations, setShowPerlinElevations] = useState(false);
 
-  const [showFullMap, setShowFullMap] = useState(false);
+  const [showFullMap, setShowFullMap] = useState(true);
 
   // Menu state for dropdown animation
   const [isMenuOpen, setIsMenuOpen] = useState(false);
