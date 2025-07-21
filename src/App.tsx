@@ -204,7 +204,7 @@ function App() {
                           setAmount(Math.max(1, Math.min(2000, value)));
                         }}
                         min="1"
-                        max="2000"
+                        max="5000"
                       />
                       <button
                         onClick={() => setAmount(prev => Math.min(2000, prev + 50))}
