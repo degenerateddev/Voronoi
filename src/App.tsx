@@ -207,7 +207,7 @@ function App() {
                         max="5000"
                       />
                       <button
-                        onClick={() => setAmount(prev => Math.min(2000, prev + 50))}
+                        onClick={() => setAmount(prev => Math.min(5000, prev + 50))}
                         className="cursor-pointer bg-white/10 hover:bg-white/20 text-white w-8 h-8 rounded-md flex items-center justify-center transition-all duration-200 font-mono text-lg font-bold"
                       >
                         +
