@@ -62,7 +62,7 @@ function App() {
       <section>
         <header className="absolute w-full z-10">
           {/* Top bar with title and burger menu */}
-          <div className="flex items-center justify-between bg-black/70 p-5">
+          <div className="flex items-center justify-between bg-black/90 backdrop-blur-md p-5">
             {/* Burger Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -84,7 +84,7 @@ function App() {
           </div>
 
           {/* Dropdown Menu */}
-          <div className={`overflow-hidden bg-black/70 transition-all duration-500 ease-in-out ${
+          <div className={`overflow-hidden bg-black/90 backdrop-blur-md transition-all duration-500 ease-in-out ${
             isMenuOpen ? 'max-h-[80vh] opacity-100' : 'max-h-0 opacity-0'
           }`}>
             <div className="p-5 pt-0">
