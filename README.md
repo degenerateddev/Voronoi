@@ -203,24 +203,9 @@ const depthVariation = 0.4 + detailVariation * 0.4;
 const blue = Math.floor(181 * (depthVariation + 0.2));
 ```
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **D3.js Team** for the powerful visualization library
-- **Perlin Noise Algorithm** for procedural generation techniques
-- **Voronoi Diagrams** mathematical foundation
-- **Open Source Community** for inspiration and tools
+This project is licensed under the MIT License.
 
 ## 📊 Performance Notes
 
@@ -234,11 +219,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [ ] 3D terrain visualization
 - [ ] River and road generation
 - [ ] Biome system expansion
-- [ ] Export capabilities (PNG, SVG)
-- [ ] Animation and transitions
-- [ ] Custom color palette editor
-- [ ] Seed pattern saving/loading
-
----
-
-**Made with ❤️ and mathematics** - Exploring the beauty of procedural generation and computational geometry.
+- [ ] Export/Import capabilities (PNG, SVG, Seed Pattern, etc.)
+- [ ] Animations and transitions
