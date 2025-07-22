@@ -185,13 +185,9 @@ function App() {
                     <span className="text-sm">Show Voronoi Diagram After Centroid Calculation</span>
                   </div>
 
-                  <hr className="border-white/30" />
-
                   <div className="space-y-2">
                     <h2 className="text-lg font-bold border-b border-white/30 pb-2">Seed Amount</h2>
 
-                    <hr className="border-white/30" />
-                    
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setAmount(prev => Math.max(1, prev - 50))}
