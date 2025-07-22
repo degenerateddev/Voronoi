@@ -101,15 +101,6 @@ function App() {
                     <span className="text-sm">Show Seed Points</span>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={showCentroids}
-                      onChange={() => setShowCentroids((prev) => !prev)}
-                    />
-                    <span className="text-sm">Show Centroids</span>
-                  </div>
-
                   <div className="ml-3 space-y-1">
                     <div className="flex items-center gap-3">
                       <input
@@ -138,6 +129,15 @@ function App() {
                       />
                       <span className="text-sm">Lloyd's Relaxation</span>
                     </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={showCentroids}
+                      onChange={() => setShowCentroids((prev) => !prev)}
+                    />
+                    <span className="text-sm">Show Centroids</span>
                   </div>
 
                   <div className="flex items-center gap-3">
@@ -188,7 +188,10 @@ function App() {
                   <hr className="border-white/30" />
 
                   <div className="space-y-2">
-                    <span className="text-sm">Set seed amount:</span>
+                    <h2 className="text-lg font-bold border-b border-white/30 pb-2">Seed Amount</h2>
+
+                    <hr className="border-white/30" />
+                    
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setAmount(prev => Math.max(1, prev - 50))}
