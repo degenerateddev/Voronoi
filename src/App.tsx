@@ -7,8 +7,8 @@ const WIDTH = window.innerWidth;
 const HEIGHT = window.innerHeight;
 const AMOUNT = 500;
 const LIMIT = 20000;
-const POISSON_RADIUS = 20;
-const LLOYDS_ITER = 2;
+const POISSON_RADIUS = 30;
+const LLOYDS_ITER = 5;
 
 type SeedMode = "random" | "poisson" | "lloyds";
 
@@ -42,7 +42,7 @@ function App() {
       newSeeds = generatePoissonDiscPoints(amount, WIDTH, HEIGHT, POISSON_RADIUS);
     } else if (mode === "lloyds") {
       const base = generateRandomPoints(amount, WIDTH, HEIGHT);
-      newSeeds = generateLloydsRelaxation(base, LLOYDS_ITER);
+      newSeeds = generateLloydsRelaxation(base, LLOYDS_ITER, WIDTH, HEIGHT);
     }
     setSeedPoints(newSeeds);
   }
@@ -61,9 +61,7 @@ function App() {
     <>
       <section>
         <header className="absolute w-full z-10">
-          {/* Top bar with title and burger menu */}
           <div className="flex items-center justify-between bg-black/90 backdrop-blur-md p-5">
-            {/* Burger Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="flex flex-col justify-center items-center w-8 h-8 cursor-pointer group"
@@ -74,16 +72,13 @@ function App() {
               <span className={`block h-0.5 w-6 bg-white mt-1 transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
             </button>
 
-            {/* Title */}
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-mono font-semibold text-center flex-1 mx-4">
-              Voronoi Noise Map Generation
+              Voronoi Map Generation
             </h1>
 
-            {/* Spacer to balance the burger menu */}
             <div className="w-8"></div>
           </div>
 
-          {/* Dropdown Menu */}
           <div className={`overflow-hidden bg-black/90 backdrop-blur-md transition-all duration-500 ease-in-out ${
             isMenuOpen ? 'max-h-[80vh] opacity-100' : 'max-h-0 opacity-0'
           }`}>
@@ -292,8 +287,13 @@ function App() {
           }
         />
 
-        <button onClick={() => setSeedPoints(generateRandomPoints(amount, WIDTH, HEIGHT))} className="fixed bottom-5 left-[50%] translate-x-[-50%] bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 cursor-pointer">
-          Regenerate Voronoi
+        <button 
+          onClick={() => regenerateSeeds()} 
+          className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-md p-2 rounded-md hover:bg-black transition duration-200 cursor-pointer w-10 h-10 flex items-center justify-center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
         </button>
       </section>
     </>
