@@ -127,11 +127,14 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
 
         if (vision.showNoisePattern) {
             const noiseGroup = svg.append("g");
-            const cellSize = 4; // larger = faster but lower resolution
+            const cellSize = 6; // larger = faster, but lower resolution
+            
+            // distance lookup for better performance
+            const distanceMap = new Map<string, number>();
             
             for (let y = 0; y < height; y += cellSize) {
                 for (let x = 0; x < width; x += cellSize) {
-
+                    const key = `${x},${y}`;
                     let minDist = Infinity;
 
                     for (const p of centroids) {
@@ -142,41 +145,72 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
                         const dist = Math.sqrt(dx * dx + dy * dy);
                         if (dist < minDist) minDist = dist;
                     }
-
-                    const maxDist = Math.sqrt(width * width + height * height);
-                    const gray = Math.floor((minDist / (maxDist * 0.05)) * 255);
-
-                    noiseGroup.append("rect")
-                        .attr("x", x)
-                        .attr("y", y)
-                        .attr("width", cellSize)
-                        .attr("height", cellSize)
-                        .attr("fill", `rgb(${gray},${gray},${gray})`)
-                        .attr("stroke", "none");
+                    
+                    distanceMap.set(key, minDist);
                 }
             }
+            
+            // Batch create rectangles
+            const maxDist = Math.sqrt(width * width + height * height);
+            const noiseRects: Array<{x: number, y: number, fill: string}> = [];
+            
+            for (let y = 0; y < height; y += cellSize) {
+                for (let x = 0; x < width; x += cellSize) {
+                    const minDist = distanceMap.get(`${x},${y}`) || 0;
+                    const gray = Math.floor((minDist / (maxDist * 0.05)) * 255);
+                    
+                    noiseRects.push({
+                        x,
+                        y,
+                        fill: `rgb(${gray},${gray},${gray})`
+                    });
+                }
+            }
+            
+            // Batch render
+            noiseGroup.selectAll("rect.noise")
+                .data(noiseRects)
+                .join("rect")
+                .attr("class", "noise")
+                .attr("x", d => d.x)
+                .attr("y", d => d.y)
+                .attr("width", cellSize)
+                .attr("height", cellSize)
+                .attr("fill", d => d.fill)
+                .attr("stroke", "none");
         }
 
         if (vision.showPerlinElevations) {
             const noiseGroup = svg.append("g");
-            const cellSize = 4;
+            const cellSize = 6;
+            const elevationRects: Array<{x: number, y: number, fill: string}> = [];
+            
             for (let y = 0; y < height; y += cellSize) {
                 for (let x = 0; x < width; x += cellSize) {
                     const nx = Math.floor(x / cellSize);
                     const ny = Math.floor(y / cellSize);
                     const elevationValue = elevation[ny * perlinWidth + nx];
-
                     const gray = Math.floor(elevationValue * 255);
-
-                    noiseGroup.append("rect")
-                        .attr("x", x)
-                        .attr("y", y)
-                        .attr("width", cellSize)
-                        .attr("height", cellSize)
-                        .attr("fill", `rgb(${gray},${gray},${gray})`)
-                        .attr("stroke", "none");
+                    
+                    elevationRects.push({
+                        x,
+                        y,
+                        fill: `rgb(${gray},${gray},${gray})`
+                    });
                 }
             }
+            
+            // Batch render
+            noiseGroup.selectAll("rect.elevation")
+                .data(elevationRects)
+                .join("rect")
+                .attr("class", "elevation")
+                .attr("x", d => d.x)
+                .attr("y", d => d.y)
+                .attr("width", cellSize)
+                .attr("height", cellSize)
+                .attr("fill", d => d.fill)
+                .attr("stroke", "none");
         }
 
         if (vision.showFullMap) {
@@ -184,8 +218,16 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
             const centerX = width / 2;
             const centerY = height / 2;
             const maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
-            // const baseIslandRadius = 0.5;
+            const baseRadius = 0.5;
+            
+            const terrainData: Array<{
+                cell: [number, number][];
+                color: string;
+                centroid: [number, number];
+                isLand: boolean;
+            }> = [];
 
+            // const baseIslandRadius = 0.5;
             // for (let i = 0; i < seeds.length; i++) {
             //     const cell = voronoiCentroids.cellPolygon(i);
             //     if (!cell) continue;
@@ -313,8 +355,7 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
                 const dist = Math.sqrt(dx * dx + dy * dy) / maxDist;
                 const angle = Math.atan2(dy, dx);
 
-                const baseRadius = 0.5;
-                
+                // trigonometric values
                 const wave1 = Math.sin(angle * 2.3) * 0.15;
                 const wave2 = Math.sin(angle * 7.7 + 1.2) * 0.08;
                 const wave3 = Math.sin(angle * 13.1 + 2.8) * 0.04;
@@ -341,11 +382,9 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
                     }
                 }
 
-                let terrainType: 'ocean' | 'plains' | 'forest' | 'mountains';
-                if (baseElevation < 0.3) terrainType = 'ocean';
-                else if (baseElevation < 0.5) terrainType = 'plains';
-                else if (baseElevation < 0.7) terrainType = 'forest';
-                else terrainType = 'mountains';
+                const terrainType = baseElevation < 0.3 ? 'ocean' :
+                                  baseElevation < 0.5 ? 'plains' :
+                                  baseElevation < 0.7 ? 'forest' : 'mountains';
 
                 // detailed elevation variations
                 const detailX = Math.floor(centroid[0] / 2);
@@ -354,7 +393,7 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
                 const detailVariation = detailNoise[detailIndex] || 0;
 
                 // final color = terrain type + detail variations
-                let color;
+                let color: string;
                 if (terrainType === 'ocean') {
                     const depthVariation = 0.4 + detailVariation * 0.4;
                     const red = Math.floor(79 * depthVariation);
@@ -366,6 +405,7 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
                     const greenVariation = 0.8 + detailVariation * 0.4;
                     const green = Math.min(255, Math.floor(238 * greenVariation));
                     color = `rgb(144, ${green}, 144)`;
+
                 } else if (terrainType === 'forest') {
                     const forestVariation = 0.7 + detailVariation * 0.6;
                     const green = Math.min(255, Math.floor(139 * forestVariation));
@@ -377,56 +417,67 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
                     color = `rgb(${gray}, ${gray}, ${gray})`;
                 }
 
-                mapGroup.append("path")
-                    .attr("d", "M" + cell.join("L") + "Z")
-                    .attr("fill", color)
-                    .attr("stroke", "#222")
-                    .attr("stroke-width", 0.5);
+                terrainData.push({
+                    cell,
+                    color,
+                    centroid,
+                    isLand: terrainType !== 'ocean'
+                });
             }
+            
+            mapGroup.selectAll("path.terrain")
+                .data(terrainData)
+                .join("path")
+                .attr("class", "terrain")
+                .attr("d", d => "M" + d.cell.join("L") + "Z")
+                .attr("fill", d => d.color)
+                .attr("stroke", "#222")
+                .attr("stroke-width", 0.5);
 
             const cityGroup = svg.append("g");
-            const baseRadius = 0.5;
             
-            for (const cityData of citySeeds) {
-                const cityCenter = cityData.centroid;
-                
-                const cityDx = cityCenter.x - centerX;
-                const cityDy = cityCenter.y - centerY;
-                const cityDist = Math.sqrt(cityDx * cityDx + cityDy * cityDy) / maxDist;
-                const cityAngle = Math.atan2(cityDy, cityDx);
-                
-                const wave1 = Math.sin(cityAngle * 2.3) * 0.15;
-                const wave2 = Math.sin(cityAngle * 7.7 + 1.2) * 0.08;
-                const wave3 = Math.sin(cityAngle * 13.1 + 2.8) * 0.04;
-                const dynamicRadius = baseRadius + wave1 + wave2 + wave3;
-                const globalVariation = Math.sin(cityAngle * 0.7) * 0.1;
-                const finalRadius = dynamicRadius + globalVariation;
-                
-                if (cityDist > finalRadius) continue;
-                
-                const cityNx = Math.floor(cityCenter.x / 4);
-                const cityNy = Math.floor(cityCenter.y / 4);
-                let cityElevation = elevation[cityNy * perlinWidth + cityNx];
-                
-                // edge smoothing
-                if (cityDist > finalRadius * 0.85) {
-                    const t = (cityDist - finalRadius * 0.85) / (finalRadius * 0.15);
-                    cityElevation = cityElevation * (1 - t);
-                }
-                
-                let cityTerrainType: 'ocean' | 'plains' | 'forest' | 'mountains';
-                if (cityElevation < 0.3) cityTerrainType = 'ocean';
-                else if (cityElevation < 0.5) cityTerrainType = 'plains';
-                else if (cityElevation < 0.7) cityTerrainType = 'forest';
-                else cityTerrainType = 'mountains';
-                
-                if (cityTerrainType === 'ocean') continue;
-                
-                const cityRadius = 20;
-                
+            // pre-filter land cells and pre-calculate city data
+            const validCityData = citySeeds
+                .map(cityData => {
+                    const cityCenter = cityData.centroid;
+                    const cityDx = cityCenter.x - centerX;
+                    const cityDy = cityCenter.y - centerY;
+                    const cityDist = Math.sqrt(cityDx * cityDx + cityDy * cityDy) / maxDist;
+                    const cityAngle = Math.atan2(cityDy, cityDx);
+                    
+                    const wave1 = Math.sin(cityAngle * 2.3) * 0.15;
+                    const wave2 = Math.sin(cityAngle * 7.7 + 1.2) * 0.08;
+                    const wave3 = Math.sin(cityAngle * 13.1 + 2.8) * 0.04;
+                    const dynamicRadius = baseRadius + wave1 + wave2 + wave3;
+                    const globalVariation = Math.sin(cityAngle * 0.7) * 0.1;
+                    const finalRadius = dynamicRadius + globalVariation;
+                    
+                    if (cityDist > finalRadius) return null;
+                    
+                    const cityNx = Math.floor(cityCenter.x / 4);
+                    const cityNy = Math.floor(cityCenter.y / 4);
+                    let cityElevation = elevation[cityNy * perlinWidth + cityNx];
+                    
+                    if (cityDist > finalRadius * 0.85) {
+                        const t = (cityDist - finalRadius * 0.85) / (finalRadius * 0.15);
+                        cityElevation = cityElevation * (1 - t);
+                    }
+                    
+                    const cityTerrainType = cityElevation < 0.3 ? 'ocean' :
+                                           cityElevation < 0.5 ? 'plains' :
+                                           cityElevation < 0.7 ? 'forest' : 'mountains';
+                    
+                    if (cityTerrainType === 'ocean') return null;
+                    
+                    return { ...cityData, finalRadius, cityElevation };
+                })
+                .filter((data): data is NonNullable<typeof data> => data !== null);
+            
+            const cityRadius = 20;
+            validCityData.forEach(cityData => {
                 cityGroup.append("text")
-                    .attr("x", cityCenter.x)
-                    .attr("y", cityCenter.y - 25)
+                    .attr("x", cityData.centroid.x)
+                    .attr("y", cityData.centroid.y - 25)
                     .attr("text-anchor", "middle")
                     .attr("font-family", "Arial, sans-serif")
                     .attr("font-size", "12px")
@@ -435,9 +486,16 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
                     .attr("stroke", "black")
                     .attr("stroke-width", "0.5")
                     .text(cityData.name);
+            });
+            
+            const cityPixelSize = 6;
+            const cityRects: Array<{x: number, y: number, fill: string}> = [];
+            
+            validCityData.forEach(cityData => {
+                const cityCenter = cityData.centroid;
                 
-                for (let dx = -cityRadius; dx <= cityRadius; dx += 4) {
-                    for (let dy = -cityRadius; dy <= cityRadius; dy += 4) {
+                for (let dx = -cityRadius; dx <= cityRadius; dx += cityPixelSize) {
+                    for (let dy = -cityRadius; dy <= cityRadius; dy += cityPixelSize) {
                         const cityPixelX = cityCenter.x + dx;
                         const cityPixelY = cityCenter.y + dy;
                         
@@ -446,46 +504,36 @@ export default function Canvas({ seeds, width, height, vision }: Props) {
                         const pixelDx = cityPixelX - centerX;
                         const pixelDy = cityPixelY - centerY;
                         const pixelDist = Math.sqrt(pixelDx * pixelDx + pixelDy * pixelDy) / maxDist;
-                        const pixelAngle = Math.atan2(pixelDy, pixelDx);
                         
-                        const pixelWave1 = Math.sin(pixelAngle * 2.3) * 0.15;
-                        const pixelWave2 = Math.sin(pixelAngle * 7.7 + 1.2) * 0.08;
-                        const pixelWave3 = Math.sin(pixelAngle * 13.1 + 2.8) * 0.04;
-                        const pixelDynamicRadius = baseRadius + pixelWave1 + pixelWave2 + pixelWave3;
-                        const pixelGlobalVariation = Math.sin(pixelAngle * 0.7) * 0.1;
-                        const pixelFinalRadius = pixelDynamicRadius + pixelGlobalVariation;
-                        
-                        if (pixelDist > pixelFinalRadius) continue;
+                        if (pixelDist > cityData.finalRadius) continue;
                         
                         const distToCityCenter = Math.sqrt(dx * dx + dy * dy);
                         
-                        let minDistToCentroid = distToCityCenter;
-                        for (const otherCity of citySeeds) {
-                            const otherDx = cityPixelX - otherCity.centroid.x;
-                            const otherDy = cityPixelY - otherCity.centroid.y;
-                            const otherDist = Math.sqrt(otherDx * otherDx + otherDy * otherDy);
-                            if (otherDist < minDistToCentroid) {
-                                minDistToCentroid = otherDist;
-                            }
-                        }
-                        
-                        if (distToCityCenter === minDistToCentroid && distToCityCenter <= cityRadius) {
-                            const maxPossibleDist = cityRadius;
-                            const normalizedDist = distToCityCenter / maxPossibleDist;
-                            
+                        // only check against current city
+                        if (distToCityCenter <= cityRadius) {
+                            const normalizedDist = distToCityCenter / cityRadius;
                             const grayValue = Math.floor(60 + normalizedDist * 120);
                             
-                            cityGroup.append("rect")
-                                .attr("x", cityPixelX - 2)
-                                .attr("y", cityPixelY - 2)
-                                .attr("width", 4)
-                                .attr("height", 4)
-                                .attr("fill", `rgb(${grayValue}, ${grayValue}, ${grayValue})`)
-                                .attr("opacity", 0.8);
+                            cityRects.push({
+                                x: cityPixelX - cityPixelSize/2,
+                                y: cityPixelY - cityPixelSize/2,
+                                fill: `rgb(${grayValue}, ${grayValue}, ${grayValue})`
+                            });
                         }
                     }
                 }
-            }
+            });
+            
+            cityGroup.selectAll("rect.city")
+                .data(cityRects)
+                .join("rect")
+                .attr("class", "city")
+                .attr("x", d => d.x)
+                .attr("y", d => d.y)
+                .attr("width", cityPixelSize)
+                .attr("height", cityPixelSize)
+                .attr("fill", d => d.fill)
+                .attr("opacity", 0.8);
         }
 
         if (vision.showSeedPoints) {
